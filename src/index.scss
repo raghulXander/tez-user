@@ -1,0 +1,27 @@
+@import "./containers/peopleListView/people_list_view.scss";
+
+#root,
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+span,
+button,
+div,
+a,
+body {
+    font-family: Poppins, 'san-serif';
+}
+
+a,
+button {
+    outline: none;
+    cursor: pointer;
+
+    &:active,
+    &:hover {
+        outline: none; 
+    }
+}
