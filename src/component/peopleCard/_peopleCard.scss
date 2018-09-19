@@ -1,0 +1,76 @@
+.card_container {
+    padding: 30px 50px;
+
+    .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        .left-col {
+            .image {
+                
+                .user_image {
+                    border-radius: 50%;
+                    border:1px solid #000;
+                    width: 135px;
+                    height: 135px;
+                }
+            }
+        }
+    }
+
+    .content {
+        display: flex;
+        justify-content: flex-start;
+        align-items: flex-start;
+        flex-direction: column;
+        padding-left: 20%;
+
+        > .field {
+            display: flex;
+            flex-direction: row;
+            justify-content: flex-start;
+            width: 100%;
+            padding: 10px 0;
+
+            > .label {
+                min-width: 150px;
+                font-size: 20px;
+                font-family: 'Poppins';
+                font-weight: 500;
+
+                &.likes {
+                    > i {
+                        color: green;
+                        display: inline-block;
+                        vertical-align: text-top;
+                    }
+                }
+
+                &.dislikes {
+                    > i {
+                        color: red;
+                        display: inline-block;
+                        vertical-align: text-bottom;
+                    }
+                }
+            }
+
+            > .field_value {
+                font-family: 'Kaushan Script';
+                font-size: 18px;
+
+                > ol {
+                    margin: 0;
+                    padding: 0 15px;
+
+                    .item {
+                        padding: 5px 0;
+                    }
+                }
+            }
+            // padding: 0 10%;
+        }
+  
+    }
+}

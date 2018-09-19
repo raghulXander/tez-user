@@ -3,18 +3,33 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Modal from "react-responsive-modal";
+import Loader from 'react-loader-spinner'
+import Dropzone from 'react-dropzone'
 
 import {getPeopleData} from '../../actions/peopleActions'
+import PeopleCard from '../../component/peopleCard/peopleCard'; 
 
 
 class PeopleListContainer extends Component {
 
     constructor(props) {
         super(props);
+
         this.state = {
             peopleIds: [],
-            open: false
+            open: false,
+            active: "1",
+            accepted: [],
+            rejected: [],
+            fieldValues: {
+                name: '',
+                id: 0,
+                description: ''
+            }
+            
         }
+
+        this.onDrop = this.onDrop.bind(this);
     }
     
     onOpenModal = () => {
@@ -24,6 +39,16 @@ class PeopleListContainer extends Component {
     onCloseModal = () => {
         this.setState({ open: false });
     };
+
+    handleCancelSubmit() {
+        let fieldValues = {
+            name: '',
+            id: 0,
+            description: ''
+        };
+
+        this.setState({ open: false, fieldValues  });
+    }
 
     componentDidMount() {
         this.props.requestPeopleList();
@@ -39,9 +64,24 @@ class PeopleListContainer extends Component {
 
     render() {
         console.log(this.props.peopleList,"fffff")
-        const {peopleIds, count, open} = this.state;
+        const {peopleIds, count, open, active} = this.state;
+        const {peopleList} = this.props;
+
+        if (peopleList.loading || peopleList.result === null) {
+            return(
+                <div className='list_container loader'>
+                    <Loader 
+                    type="Plane"
+                    color="#00BFFF"
+                    height="100"	
+                    width="100"
+                    />  
+                </div> 
+               );
+        }
+
         return (
-            <div className='list_conatiner'>
+            <div className='list_container'>
                 <div className='header'>
                     <button className='add-button' onClick={this.onOpenModal}>
                     <i className="fas fa-plus"></i> 
@@ -61,14 +101,37 @@ class PeopleListContainer extends Component {
                         {this.renderPeopleLists()}
                     </div>
                     <div className='card-content'>
-                    dsfdg
+                        {peopleList.result.People.map((cardData, idx) => {
+                            if (cardData.id === active && cardData) {
+                                return (
+                                    <PeopleCard 
+                                        imageUrl={cardData.img}
+                                        name={cardData.name}
+                                        id={cardData.id}
+                                        Description={cardData.Description}
+                                        likes={cardData.Likes}
+                                        dislikes={cardData.Dislikes}
+                                        rating={cardData.rating}
+                                    />
+                                )
+                            }
+                        })}
+                        
                     </div>
                 </div>
-                <Modal open={open} onClose={this.onCloseModal} center>
+                <Modal open={open} onClose={this.onCloseModal} center styles={{
+                    modal: {minWidth: "60%"}
+                }}>
                     {this.renderModal()}
                 </Modal>
             </div> 
         );
+    }
+
+    onDrop(picture) {
+        this.setState({
+            pictures: this.state.pictures.concat(picture),
+        });
     }
 
     renderModal() {
@@ -76,13 +139,34 @@ class PeopleListContainer extends Component {
 
         return (
             <div className="popup-submit">
-            <div className="popup-confirm-section">
-                <div className="popup-confirm">Confirm Details</div>
-            </div>
+                <div className="form-upload">
+                    <Dropzone
+                        className="dropzone"
+                        multiple={false}
+                        accept="image/jpeg, image/png"
+                        onDrop={(accepted, rejected) => { this.setState({ accepted, rejected }); }}
+                    >
+                        <div className="upload-icon"><i class="fa fa-file-image"></i></div>  
+                    </Dropzone>
+                </div>
             <form>
-                
+                <div className='form-content'>
+                    <div className="field_values">
+                        <div className='label'>Name</div>
+                        <input type="text" className='input_field' onChange={this.handleInputChange.bind(this, 'name')} />
+                    </div>
+                    <div className="field_values">
+                        <div className='label'>id</div>
+                        <input type="text" className='input_field' onChange={this.handleInputChange.bind(this, 'id')} />
+                    </div>
+                    <div className="field_values">
+                        <div className='label'>Description</div>
+                        <textarea className='input_field' rows="6" onChange={this.handleInputChange.bind(this, 'description')} />
+                    </div>
+                </div>
             </form>
             <div className="button-section">
+                <button className="cancel-button" onClick={this.handleCancelSubmit.bind(this)}><span>Cancel</span></button>
                 <button className="confirm-button" onClick={this.handleFormSubmit.bind(this)}><span>Confirm</span></button>
               
             </div>
@@ -94,34 +178,65 @@ class PeopleListContainer extends Component {
 
     }
 
+    handleInputChange(field, ev) {
+        let {fieldValues} = this.state;
+        fieldValues[field] = ev.target.value;
+
+        this.setState({
+            fieldValues
+        });
+    }
+
+    handleImageChange(e) {
+        e.preventDefault();
+    
+        let reader = new FileReader();
+        let file = e.target.files[0];
+    
+        reader.onloadend = () => {
+          this.setState({
+            file: file,
+            imagePreviewUrl: reader.result
+          });
+        }
+    
+        reader.readAsDataURL(file)
+      }
+
     selectAllPeoples() {
         let {peopleList} = this.props;
-        let {peopleIds} = this.state;
+        let {peopleIds, active} = this.state;
         if (peopleIds.length > 0) {
             peopleIds = [];
+            active = "0"
         } else {
             peopleList.result.People.map((people, idx) => {
                 peopleIds.push(people.id)
             });
+            active = peopleIds[peopleIds.length - 1]
         }
         this.handleAllPeopleCheck(true)
 
         this.setState({
-            peopleIds
+            peopleIds,
+            active
         })
     }
 
     selectPeople(id) {
-        let {peopleIds} = this.state;
+        let {peopleIds, active} = this.state;
 
         if (!peopleIds.includes(id)) {
             peopleIds.push(id)
+            active = peopleIds[peopleIds.length - 1]
         } else {
             peopleIds = peopleIds.filter(item => item !== id);
+            active = peopleIds.length ? peopleIds[peopleIds.length - 1] : "0";
         }
 
         this.setState({
-            peopleIds
+            peopleIds,
+            active
         })
 
         this.handleAllPeopleCheck(false)
