@@ -64,6 +64,11 @@ $purple: #0f3cb9;
                     float: right;
                     right: 20px;
                     position: absolute;
+                    cursor: pointer;
+
+                    &:hover {
+                        color: red;
+                    }
                 }
                 
             }

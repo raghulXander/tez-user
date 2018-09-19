@@ -1,5 +1,6 @@
 import peopleActions from '../actions/peopleActions';
 import { Actions } from '../constants/actions';
+import _ from 'lodash';
 
 const IntialState = {
     loading: false,
@@ -21,6 +22,15 @@ export default (state = IntialState, action) => {
             return {
                 loading: false,
                 result: action.payload.err
+            }
+        case Actions.REMOVE_PEOPLE_REQUEST :
+            return {
+                loading: true
+            }
+        case Actions.REMOVE_PEOPLE_SUCCESS :
+            return {
+                loading: false,
+                result: action.payload
             }
         default: 
             return state

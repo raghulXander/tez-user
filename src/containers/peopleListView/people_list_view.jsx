@@ -6,7 +6,7 @@ import Modal from "react-responsive-modal";
 import Loader from 'react-loader-spinner'
 import Dropzone from 'react-dropzone'
 
-import {getPeopleData} from '../../actions/peopleActions'
+import {getPeopleData, removePeoples} from '../../actions/peopleActions'
 import PeopleCard from '../../component/peopleCard/peopleCard'; 
 
 
@@ -56,6 +56,7 @@ class PeopleListContainer extends Component {
 
     componentWillReceiveProps(nextProps, nextState) {
         if ( nextProps.peopleList.result !== null && this.props.peopleList !== nextProps.peopleList) {
+            console.log(nextProps.peopleList,"nextProps.peopleList")
             this.setState({
                 count: nextProps.peopleList.result.People.length
             })
@@ -96,7 +97,7 @@ class PeopleListContainer extends Component {
                                 <label className="check-people-label" htmlFor="people">&nbsp;</label>
                             </label>
                             <div className="name-label">People</div>
-                            <i className="fas fa-trash"></i> 
+                            <i className="fas fa-trash" onClick={this.handleDeleteData.bind(this)}></i> 
                         </div>
                         {this.renderPeopleLists()}
                     </div>
@@ -132,6 +133,12 @@ class PeopleListContainer extends Component {
         this.setState({
             pictures: this.state.pictures.concat(picture),
         });
+    }
+
+    handleDeleteData() {
+        let {peopleIds} = this.state;
+        this.props.requestRemoveData(peopleIds)
+
     }
 
     renderModal() {
@@ -292,6 +299,7 @@ const mapStateToProps = (state) => ({
 })
 
 const mapDispatchToProps = dispatch => ({
-    requestPeopleList: () => dispatch(getPeopleData())
+    requestPeopleList: () => dispatch(getPeopleData()),
+    requestRemoveData: (data) => dispatch(removePeoples(data))
 })
 export default connect(mapStateToProps, mapDispatchToProps)(PeopleListContainer);
