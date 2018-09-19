@@ -3,7 +3,7 @@ import { Actions } from '../constants/actions';
 
 const IntialState = {
     loading: false,
-    result: []
+    result: null
 }
 
 export default (state = IntialState, action) => {
