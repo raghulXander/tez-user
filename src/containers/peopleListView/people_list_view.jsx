@@ -4,9 +4,11 @@ import React, { Component } from 'react';
 import { connect } from 'react-redux';
 import Modal from "react-responsive-modal";
 import Loader from 'react-loader-spinner'
-import Dropzone from 'react-dropzone'
+import {findIndex} from "lodash";
+import firebase from 'firebase';
+import CustomUploadButton from 'react-firebase-file-uploader/lib/CustomUploadButton';
 
-import {getPeopleData, removePeoples} from '../../actions/peopleActions'
+import {getPeopleData, removePeoples, addNewPeople} from '../../actions/peopleActions'
 import PeopleCard from '../../component/peopleCard/peopleCard'; 
 
 
@@ -19,17 +21,25 @@ class PeopleListContainer extends Component {
             peopleIds: [],
             open: false,
             active: "1",
-            accepted: [],
-            rejected: [],
+            file: null,
+            avatar: '',
+            isUploading: false,
+            progress: 0,
+            avatarURL: '',
             fieldValues: {
                 name: '',
-                id: 0,
-                description: ''
+                id: '',
+                description: '',
+                rating: 0,
+            },
+            errors: {
+                name: '',
+                id: '',
+                description: '',
+                rating: ''
             }
             
         }
-
-        this.onDrop = this.onDrop.bind(this);
     }
     
     onOpenModal = () => {
@@ -56,7 +66,6 @@ class PeopleListContainer extends Component {
 
     componentWillReceiveProps(nextProps, nextState) {
         if ( nextProps.peopleList.result !== null && this.props.peopleList !== nextProps.peopleList) {
-            console.log(nextProps.peopleList,"nextProps.peopleList")
             this.setState({
                 count: nextProps.peopleList.result.People.length
             })
@@ -64,7 +73,6 @@ class PeopleListContainer extends Component {
     }
 
     render() {
-        console.log(this.props.peopleList,"fffff")
         const {peopleIds, count, open, active} = this.state;
         const {peopleList} = this.props;
 
@@ -72,10 +80,10 @@ class PeopleListContainer extends Component {
             return(
                 <div className='list_container loader'>
                     <Loader 
-                    type="Plane"
-                    color="#00BFFF"
-                    height="100"	
-                    width="100"
+                        type="Plane"
+                        color="#00BFFF"
+                        height="100"	
+                        width="100"
                     />  
                 </div> 
                );
@@ -102,7 +110,8 @@ class PeopleListContainer extends Component {
                         {this.renderPeopleLists()}
                     </div>
                     <div className='card-content'>
-                        {peopleList.result.People.map((cardData, idx) => {
+                        {peopleList.result.People.length === 0 ? <div className="no-data"> No People Found... Click + to add new People</div> 
+                        : peopleList.result.People.map((cardData, idx) => {
                             if (cardData.id === active && cardData) {
                                 return (
                                     <PeopleCard 
@@ -129,47 +138,50 @@ class PeopleListContainer extends Component {
         );
     }
 
-    onDrop(picture) {
-        this.setState({
-            pictures: this.state.pictures.concat(picture),
-        });
-    }
-
-    handleDeleteData() {
-        let {peopleIds} = this.state;
-        this.props.requestRemoveData(peopleIds)
-
-    }
-
     renderModal() {
-        let {fieldValues} =  this.state;
+        let {errors} =  this.state;
 
         return (
             <div className="popup-submit">
                 <div className="form-upload">
-                    <Dropzone
-                        className="dropzone"
-                        multiple={false}
-                        accept="image/jpeg, image/png"
-                        onDrop={(accepted, rejected) => { this.setState({ accepted, rejected }); }}
+                    
+                    <CustomUploadButton
+                        accept="image/*"
+                        name="avatar"
+                        randomizeFilename
+                        style={{color: 'red', padding: 10, fontSize: '12px',textAlign: 'center'}}
+                        storageRef={firebase.storage().ref('images')}
+                        onUploadStart={this.handleUploadStart}
+                        onUploadError={this.handleUploadError}
+                        onUploadSuccess={this.handleUploadSuccess}
+                        onProgress={this.handleProgress}
                     >
-                        <div className="upload-icon"><i class="fa fa-file-image"></i></div>  
-                    </Dropzone>
+                    <div className="upload-icon">Upload {this.state.progress}%</div>  
+                    </CustomUploadButton>
+                    
                 </div>
             <form>
                 <div className='form-content'>
                     <div className="field_values">
                         <div className='label'>Name</div>
-                        <input type="text" className='input_field' onChange={this.handleInputChange.bind(this, 'name')} />
+                        <input type="text" className='input_field' maxLength="15" onChange={this.handleInputChange.bind(this, 'name')} />
                     </div>
+                        <div className="error">{errors.name}</div>
                     <div className="field_values">
                         <div className='label'>id</div>
-                        <input type="text" className='input_field' onChange={this.handleInputChange.bind(this, 'id')} />
+                        <input type="text" className='input_field' maxLength="15" onChange={this.handleInputChange.bind(this, 'id')} />
                     </div>
+                        <div className="error">{errors.id}</div>
                     <div className="field_values">
                         <div className='label'>Description</div>
                         <textarea className='input_field' rows="6" onChange={this.handleInputChange.bind(this, 'description')} />
                     </div>
+                        <div className="error">{errors.description}</div>
+                    <div className="field_values">
+                        <div className='label'>Rating</div>
+                        <input type="text" maxLength={1} onKeyPress={this.handleKeyPress.bind(this)} className='input_field'  onChange={this.handleInputChange.bind(this, 'rating')} />
+                    </div>
+                        <div className="error">{errors.rating}</div>
                 </div>
             </form>
             <div className="button-section">
@@ -181,16 +193,93 @@ class PeopleListContainer extends Component {
         )
     }
 
-    handleFormSubmit() {
+    handleUploadStart = () => this.setState({isUploading: true, progress: 0});
+
+    handleProgress = (progress) => this.setState({progress});
+
+    handleUploadError = (error) => {
+        this.setState({isUploading: false});
+        console.error(error);
+    }
+
+    handleUploadSuccess = (filename) => {
+        this.setState({avatar: filename, progress: 100, isUploading: false});
+        firebase.storage().ref('images').child(filename).getDownloadURL()
+        .then(url => {
+            console.log(url,"rrrrr")
+            this.setState({avatarURL: url})
+        });
+        console.log(this.state.avatarURL,"Ddd")
+    };
+
+
+    handleDeleteData() {
+        let {peopleIds} = this.state;
+        this.props.requestRemoveData(peopleIds)
 
     }
 
+    handleKeyPress(ev) {
+        let re = /^(?:[1-5])$/;
+
+        if (!re.test(ev.key)) {
+            ev.preventDefault();
+        }
+    }
+
+    handleFormSubmit() {
+        let {fieldValues, errors, bError, avatarURL} = this.state;
+        let errCount = 0;
+
+        for (var key in fieldValues) {
+            if (fieldValues.hasOwnProperty(key) && fieldValues[key] === '') {
+                errors[key] = "Field cannot be empty"
+                errCount++;
+            }
+        }
+
+        for (var key in errors) {
+            if (errors.hasOwnProperty(key) && errors[key] !== '') {
+                bError = true;
+                errCount++;
+            } else {
+                bError = false;
+            }
+        }
+
+        this.setState({errors})
+        if (!bError && errCount === 0) {
+            let data = {
+                name: fieldValues.name,
+                id: fieldValues.id,
+                Description: fieldValues.description,
+                rating: parseInt(fieldValues.rating),
+                Likes: ['Dogs', 'Tapoin'],
+                img: avatarURL,
+                Dislikes: ['Birds', 'Danish foods'],
+            }
+
+            this.props.addNewPeople(data);
+            this.onCloseModal();
+        }
+    }
+
     handleInputChange(field, ev) {
-        let {fieldValues} = this.state;
+        let {fieldValues, errors} = this.state;
+        let {peopleList} = this.props;
         fieldValues[field] = ev.target.value;
+        errors[field] = ''
+
+        if (field === 'id') {
+            let index = findIndex(peopleList.result.People, function(p) { return p.id == ev.target.value });
+            if (index > -1) {
+                errors[field] = 'Id Already Exists'
+            }
+        }
 
         this.setState({
-            fieldValues
+            fieldValues,
+            errors
         });
     }
 
@@ -300,6 +389,7 @@ const mapStateToProps = (state) => ({
 
 const mapDispatchToProps = dispatch => ({
     requestPeopleList: () => dispatch(getPeopleData()),
-    requestRemoveData: (data) => dispatch(removePeoples(data))
+    requestRemoveData: (data) => dispatch(removePeoples(data)),
+    addNewPeople: (data => dispatch(addNewPeople(data)))
 })
 export default connect(mapStateToProps, mapDispatchToProps)(PeopleListContainer);

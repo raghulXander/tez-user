@@ -8,13 +8,27 @@
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json">
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico">
     
-    <title>Tez People</title>
+    <title>Tez User</title>
   </head>
   <body>
     <noscript>
       You need to enable JavaScript to run this app.
     </noscript>
-    <link href="https://fonts.googleapis.com/css?family=Kaushan+Script|Poppins:400,500" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/5.5.1/firebase.js"></script>
+  <script>
+    // Initialize Firebase
+    var config = {
+      apiKey: "AIzaSyCOhhHDWVhcRxxx8yCxqALdCmDnOCUUgVI",
+      authDomain: "peoplefeed-faf16.firebaseapp.com",
+      databaseURL: "https://peoplefeed-faf16.firebaseio.com",
+      projectId: "peoplefeed-faf16",
+      storageBucket: "",
+      messagingSenderId: "445724566167"
+    };
+    firebase.initializeApp(config);
+  </script>
+    <link href="https://fonts.googleapis.com/css?family=Oxygen|Poppins:400,500" rel="stylesheet">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.3.1/css/all.css" integrity="sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU" crossorigin="anonymous">
     <div id="root"></div>
     <!--

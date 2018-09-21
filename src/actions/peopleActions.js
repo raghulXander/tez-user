@@ -45,19 +45,64 @@ export const removePeopleSuccess = (data) => dispatch => {
     })
 }
 
+export const requestAddNewPeople = (err) => dispatch => {
+    dispatch({
+        type: Actions.ADD_NEW_PEOPLE_REQUEST,
+        payload: {
+            loading: true
+        }
+    })
+}
+
+export const addNewPeopleSuccess = (data) => dispatch => {
+    dispatch({
+        type: Actions.ADD_NEW_PEOPLE_SUCCESS,
+        payload: {
+            People: data
+        }
+    })
+}
+
+export const addNewPeopleError = (err) => dispatch => {
+    dispatch({
+        type: Actions.ADD_NEW_PEOPLE_REQUEST_ERROR,
+        payload: {
+            err
+        }
+    })
+}
+
+export const removePeopleError = (err) => dispatch => {
+    dispatch({
+        type: Actions.REMOVE_PEOPLE_ERROR,
+        payload: {
+            err
+        }
+    })
+}
+
 export const removePeoples = (data) => dispatch => {
     dispatch(removePeoplesRequest);
-
     axios.get(Actions.API_URL)
     .then(res => {
         let result = res.data.People.filter(f => !data.includes(f.id));
-        console.log(result,"rrr")
         dispatch(removePeopleSuccess(result));
         
     })
     .catch(err => {
-        dispatch(getPeopleListError(err));
+        dispatch(removePeopleError(err));
     })
+}
+
+export const addNewPeople = (data) => (dispatch, getState) => {
+    dispatch(requestAddNewPeople);
+    let newData = [data]
+
+    if (getState().peopleReducer.result.People.length > 0) {
+        let data = [...getState().peopleReducer.result.People, ...newData]
+        console.log(data,"result")
+        dispatch(addNewPeopleSuccess(data));
+    }
 }
 
 export const getPeopleData = () => dispatch => {
