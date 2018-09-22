@@ -17,6 +17,20 @@
                 }
             }
         }
+        
+    }
+
+    @media screen and (max-width: 767px) {
+        .header {
+            display: block;
+
+            > .left-col,
+            .right-col{
+                display: block;
+                text-align: left;
+            }
+
+        }
     }
 
     .content {
