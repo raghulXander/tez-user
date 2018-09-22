@@ -53,7 +53,7 @@ class PeopleCard extends Component {
                             <ol>
                                 {this.props.likes.map((like, idx) => {
                                     return (
-                                        <li className="item">{like}</li>
+                                        <li className="item" key={idx}>{like}</li>
                                     )
                                  })}
                             </ol>
@@ -65,7 +65,7 @@ class PeopleCard extends Component {
                             <ol>
                                 {this.props.dislikes.map((dislike, idx) => {
                                     return (
-                                        <li className="item">{dislike}</li>
+                                        <li className="item" key={idx}>{dislike}</li>
                                     )
                                  })}
                             </ol>

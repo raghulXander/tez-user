@@ -97,11 +97,13 @@ export const removePeoples = (data) => dispatch => {
 export const addNewPeople = (data) => (dispatch, getState) => {
     dispatch(requestAddNewPeople);
     let newData = [data]
+    console.log(newData)
 
     if (getState().peopleReducer.result.People.length > 0) {
         let data = [...getState().peopleReducer.result.People, ...newData]
-        console.log(data,"result")
         dispatch(addNewPeopleSuccess(data));
+    } else {
+        dispatch(addNewPeopleSuccess(newData));
     }
 }
 

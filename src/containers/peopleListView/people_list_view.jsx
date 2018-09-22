@@ -118,6 +118,7 @@ class PeopleListContainer extends Component {
                                         imageUrl={cardData.img}
                                         name={cardData.name}
                                         id={cardData.id}
+                                        key={idx}
                                         Description={cardData.Description}
                                         likes={cardData.Likes}
                                         dislikes={cardData.Dislikes}
@@ -255,7 +256,7 @@ class PeopleListContainer extends Component {
                 Description: fieldValues.description,
                 rating: parseInt(fieldValues.rating),
                 Likes: ['Dogs', 'Tapoin'],
-                img: avatarURL,
+                img: avatarURL === null || avatarURL === '' ? "http://www.fillmurray.com/200/200" : avatarURL,
                 Dislikes: ['Birds', 'Danish foods'],
             }
 
